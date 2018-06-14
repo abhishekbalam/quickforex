@@ -33,21 +33,11 @@ router.get('/convert/:from/:to/:units', function (req, res) {
 			if (err) throw err;
 			var toRate=(Math.round(response * 100) / 100);
 			console.log(toRate);
-			
-			// var result=(fromRate*req.params.units*toRate)
-
+		
 			var result=((toRate/fromRate)*units)
-			var result=(Math.round(result * 100) / 100);
+			result=(Math.round(result * 100) / 100);
 			
 			res.send(result+' '+to)
-			// var resp=client.zscore('forex', req.params.to.toUpperCase(), function (err, response) {
-			// 	if (err) throw err;
-			// 	var toRate=(Math.round(response * 100) / 100);
-			// 	console.log(toRate);
-			// 	res.send(result+'')
-				
-
-			// 	});
 		});
 	});
 });

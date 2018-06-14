@@ -91,7 +91,7 @@ class Database{
 
 	getRate(currency,cb){
 		console.log('Get specific rate');
-		var resp=client.zscore('forex', currency, function (err, response) {
+		var resp=client.zscore('forex', currency.toUpperCase(), function (err, response) {
 			if (err) throw err;
 			response=(Math.round(response * 100) / 100)+'';
 			console.log(response);
@@ -102,18 +102,6 @@ class Database{
 
 	getRates(){
 		console.log('Get all rates');
-	}
-
-	convert(fromRate,toRate,units,cb){
-		
-		
-		var resp=client.zscore('forex', from, function (err, response) {
-			if (err) throw err;
-			var fromRate=(Math.round(response * 100) / 100)+'';
-			console.log(fromRate);
-			
-		});
-
 	}
 
 }
