@@ -29,20 +29,24 @@ function today() {
 class Database{
 
 	constructor(){
-		today=today();
+		this.today=today();
+		this.check()
+	}
+
+	check(){
 		var db=this;
-		console.log('init: check if the db is updated for '+ today);
+		console.log('init: check if the db is updated for '+ this.today);
 
 		client.get('timestamp', function(error, result) {
 			if (error) throw error;
 			
 			if(result != null){
 				console.log('Last Timestamp: ', result);
-				if(result==today){
+				if(result==this.today){
 					console.log('Timestamp is latest.');
 				}
 				else{
-					console.log('Updating Rates: ' + today);
+					console.log('Updating Rates: ' + db.today);
 					db.updateRates();
 				}
 			}
@@ -67,7 +71,7 @@ class Database{
 			.then((data) =>{
 				rates=JSON.parse(data);
 				console.log('Openforex Timestamp:' + rates.timestamp);
-				var list=['forex'];
+				var list=['rates'];
 				for (var key in rates.rates){
 					list.push(rates.rates[key]);
 					list.push(key);
@@ -75,10 +79,10 @@ class Database{
 				
 				client.zadd(list, function (err, response) {
 					if (err) throw err;
-    				console.log('Redis List Result: '+ response);
+    				console.log('Redis rates Result: '+ response);
 				});
 				
-				client.set('timestamp', today , function (err, response) {
+				client.set('timestamp', this.today , function (err, response) {
 					if (err) throw err;
 					console.log('Redis Timestamp Result: '+ response);
 					console.log('Database Refreshed!')
@@ -87,11 +91,43 @@ class Database{
 			.catch((err) =>{
 				console.log(err)
 			});
+
+		const options1 = {
+			method: 'GET',
+			uri: 'https://openexchangerates.org/api/currencies.json',
+			qs: {
+				app_id: 'dfd0870499744281809def37cd81e0ec',
+				}
+			}
+
+		rp(options1)
+			.then((data) =>{
+				var currencies=JSON.parse(data);
+				var list=['currencies'];
+				
+				for (var key in currencies){
+					list.push(key);
+					list.push(currencies[key]);
+				}
+				
+				client.hset(list, function (err, response) {
+					if (err) throw err;
+    				console.log('Redis currencies Result: '+ response);
+					console.log('Currencies Refreshed!')
+				});
+			})
+			.catch((err) =>{
+				console.log(err)
+			});
+		
+
+
 	}
 
 	getRate(currency,cb){
-		console.log('Get specific rate');
-		var resp=client.zscore('forex', currency.toUpperCase(), function (err, response) {
+		this.check();
+		console.log('Get specific rate in USD.');
+		var resp=client.zscore('rates', currency.toUpperCase(), function (err, response) {
 			if (err) throw err;
 			response=(Math.round(response * 100) / 100)+'';
 			console.log(response);
@@ -100,8 +136,32 @@ class Database{
 
 	}
 
-	getRates(){
-		console.log('Get all rates');
+	getAllRates(cb){
+		console.log('Get all rates in USD.');
+		var args=['rates', 0, -1, 'WITHSCORES']
+		var resp=client.zrange(args, function (err, response) {
+			if (err) throw err;
+			
+			var obj = new Object();
+			for(var key=0; key<response.length ; key++){
+				if(key % 2 == 0) {
+					obj[response[key]]=response[key+1];
+				}
+			}
+			cb(obj);
+			
+		});
+	
+	}
+
+	getCurrencies(cb){
+		console.log('Get Symbols for all currencies.');
+		var resp=client.hgetall('currencies', function (err, response) {
+			if (err) throw err;
+			// console.log(response);
+			cb(response);
+		});
+
 	}
 
 }

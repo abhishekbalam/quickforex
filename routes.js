@@ -4,16 +4,14 @@ var db = require('./db.js')
 
 var redis = require('redis')
 // var client = redis.createClient();
-var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
+var cleint = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
 client.on('connect', function() {
     console.log('Connected to Redis Database');
 });
 
-
-
 router.get('/', function(req, res){
-	res.send("Hello world!");
+	res.send("Welcome to Quickforex API !");
 });
 
 router.get('/convert/:from/:to/:units', function (req, res) {
@@ -43,19 +41,22 @@ router.get('/convert/:from/:to/:units', function (req, res) {
 });
 
 router.get('/rate/:currency', function (req, res) {
-	var rate=db.getRate(req.params.currency,res.send.bind(res));
+	var currencies=db.getRate(req.params.currency,res.send.bind(res));
 });
 
 router.get('/rates', function (req, res) {
-	db.getRates();
-	
-	res.send("Rates");
+	var rates=db.getAllRates(res.send.bind(res));
 });
 
 router.get('/update', function (req, res) {
 	console.log("Updaing Rates");
 	db.updateRates();
-	res.send("Rates");
+	res.send("DB Updated!");
+});
+
+router.get('/currencies', function (req, res) {
+	console.log("Getting Currencies");
+	var rate=db.getCurrencies(res.send.bind(res));
 });
 
 router.get('*', function(req, res){
