@@ -22,12 +22,12 @@ router.get('/convert/:from/:to/:units', function (req, res) {
 	
 	console.log('To convert '+ req.params.units +'\nfrom:' + req.params.from + '\nto:' + req.params.to);
 	
-	var resp=client.zscore('forex', from, function (err, response) {
+	var resp=client.zscore('rates', from, function (err, response) {
 		if (err) throw err;
 		var fromRate=(Math.round(response * 100) / 100);
 		console.log(fromRate);
 		
-		var resp=client.zscore('forex', to, function (err, response) {
+		var resp=client.zscore('rates', to, function (err, response) {
 			if (err) throw err;
 			var toRate=(Math.round(response * 100) / 100);
 			console.log(toRate);
